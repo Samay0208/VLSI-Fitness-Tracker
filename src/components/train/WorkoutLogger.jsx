@@ -67,6 +67,20 @@ export default function WorkoutLogger({ workout, isGym, color, workoutLogs, setW
 }
 
 function ExerciseRow({ ex, exIdx, color, activeLogs, logSet }) {
+  let numSets = 3;
+  if (typeof ex.defaultSets === 'number') numSets = ex.defaultSets;
+  else if (typeof ex.defaultSets === 'string') {
+    const match = ex.defaultSets.match(/\d+/);
+    if (match) numSets = parseInt(match[0], 10);
+  }
+
+  let numReps = 10;
+  if (typeof ex.defaultReps === 'number') numReps = ex.defaultReps;
+  else if (typeof ex.defaultReps === 'string') {
+    const match = ex.defaultReps.match(/\d+/);
+    if (match) numReps = parseInt(match[0], 10);
+  }
+
   return (
     <div style={{ padding: '16px 0', borderBottom: '1px solid var(--color-border-secondary)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -76,9 +90,9 @@ function ExerciseRow({ ex, exIdx, color, activeLogs, logSet }) {
       <p style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', marginBottom: '12px', fontStyle: 'italic' }}>💡 {ex.tip}</p>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {Array.from({ length: ex.defaultSets }).map((_, setIdx) => {
+        {Array.from({ length: numSets }).map((_, setIdx) => {
           const isDone = activeLogs[setIdx]?.done;
-          return <SetRow key={setIdx} setIdx={setIdx} color={color} isDone={isDone} defaultReps={ex.defaultReps} onLog={(w, r) => logSet(exIdx, setIdx, w, r)} />;
+          return <SetRow key={setIdx} setIdx={setIdx} color={color} isDone={isDone} defaultReps={numReps} onLog={(w, r) => logSet(exIdx, setIdx, w, r)} />;
         })}
       </div>
     </div>
