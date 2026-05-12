@@ -28,8 +28,20 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
 
   useEffect(() => {
     (async () => {
+      const todayStr = new Date().toDateString();
+      const cached = await db.get('dailyInsight');
+      
+      if (cached && cached.date === todayStr) {
+        setInsight(cached.text);
+        return;
+      }
+
       const prompt = `Give a 2-sentence highly motivating daily insight. Weight: ${wt}kg. VLSI Level: ${vLv.level}. Today is ${isGym ? 'Gym Day' : 'Rest Day'}. Be energetic.`;
       const res = await ai(prompt, "You are a world-class AI fitness and study coach.");
+      
+      if (res && !res.includes('Sorry')) {
+        await db.set('dailyInsight', { date: todayStr, text: res });
+      }
       setInsight(res);
     })();
   }, [wt, vLv.level, isGym]);

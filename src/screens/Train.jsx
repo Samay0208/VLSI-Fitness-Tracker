@@ -57,12 +57,33 @@ export default function TrainScreen({ profile, measurements, workoutLogs, setWor
   };
 
   const getAITips = async () => {
+    const todayStr = new Date().toDateString();
+    const cached = await db.get('dailyTrainTips');
+    if (cached && cached.date === todayStr) {
+      setTips(cached.text);
+      return;
+    }
+
     setTips('Loading...');
     const currentWeight = measurements.length ? measurements[measurements.length - 1].weight : (profile.firstMeasurement?.weight || 90);
     const prompt = `Give me 3 short personalized fitness tips for today. I weigh ${currentWeight}kg, I am doing Phase: ${fp.name}, and today is a ${isGym ? 'Gym Day' : 'Rest Day'}. Be concise.`;
     const res = await ai(prompt, "You are an elite personal trainer.");
+    
+    if (res && !res.includes('Sorry')) {
+      await db.set('dailyTrainTips', { date: todayStr, text: res });
+    }
     setTips(res);
   };
+
+  useEffect(() => {
+    (async () => {
+      const todayStr = new Date().toDateString();
+      const cached = await db.get('dailyTrainTips');
+      if (cached && cached.date === todayStr) {
+        setTips(cached.text);
+      }
+    })();
+  }, []);
 
   const workout = monthlyBlock && monthlyBlock[dow] ? monthlyBlock[dow] : (isGym ? WORKOUTS[wKey] : WORKOUTS['Rest']);
 
