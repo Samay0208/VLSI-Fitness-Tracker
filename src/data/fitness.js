@@ -1,7 +1,7 @@
 export const FIT_PHASES = [
-  { id: 0, name: "PPLUL Foundation", weeks: 8, gymDays: ["Mon", "Tue", "Wed", "Thu", "Fri"], color: "#1D9E75" },
-  { id: 1, name: "Advanced Recomposition", weeks: 12, gymDays: ["Mon", "Tue", "Wed", "Thu", "Fri"], color: "#378ADD" },
-  { id: 2, name: "Lean Bulk / Cut", weeks: 16, gymDays: ["Mon", "Tue", "Wed", "Thu", "Fri"], color: "#7F77DD" }
+  { id: 0, name: "PPLUL Foundation", weeks: 8, gymDays: ["Mon", "Tue", "Wed", "Thu", "Fri"], split: ["Push", "Pull", "Legs", "Upper", "Lower"], color: "#1D9E75" },
+  { id: 1, name: "Advanced Recomposition", weeks: 12, gymDays: ["Mon", "Tue", "Wed", "Thu", "Fri"], split: ["Upper", "Lower", "Push", "Pull", "Legs"], color: "#378ADD" },
+  { id: 2, name: "Lean Bulk / Cut", weeks: 16, gymDays: ["Mon", "Tue", "Wed", "Thu", "Fri"], split: ["Push", "Pull", "Legs", "Upper", "Lower"], color: "#7F77DD" }
 ];
 
 export const WORKOUTS = {

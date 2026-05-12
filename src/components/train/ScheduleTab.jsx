@@ -27,21 +27,35 @@ export default function ScheduleTab({ profile }) {
               
               <div style={{ display: 'flex', gap: '4px', width: '100%' }}>
                 {days.map(d => {
-                  const isGym = phase.gymDays.includes(d);
+                  const gymIdx = phase.gymDays.indexOf(d);
+                  const isGym = gymIdx !== -1;
+                  const workoutName = isGym && phase.split ? phase.split[gymIdx] : 'Rest';
+                  
                   return (
                     <div 
                       key={d} 
                       style={{ 
                         flex: 1, 
-                        padding: '12px 4px', 
+                        padding: '12px 2px', 
                         textAlign: 'center', 
                         borderRadius: '6px', 
                         background: isGym ? `${phase.color}20` : 'var(--color-bg-tertiary)',
-                        border: isGym ? `1px solid ${phase.color}` : '1px solid var(--color-border-secondary)'
+                        border: isGym ? `1px solid ${phase.color}` : '1px solid var(--color-border-secondary)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center'
                       }}
                     >
-                      <span style={{ fontSize: '10px', display: 'block', marginBottom: '4px', color: isGym ? 'white' : 'var(--color-text-tertiary)' }}>{d}</span>
-                      {isGym ? <Dumbbell size={14} color={phase.color} style={{ margin: '0 auto' }} /> : <span style={{ fontSize: '12px' }}>🚶</span>}
+                      <span style={{ fontSize: '10px', display: 'block', marginBottom: '6px', color: isGym ? 'white' : 'var(--color-text-tertiary)' }}>{d}</span>
+                      {isGym ? (
+                        <>
+                          <Dumbbell size={12} color={phase.color} style={{ marginBottom: '4px' }} />
+                          <span style={{ fontSize: '9px', fontWeight: 600, color: phase.color, lineHeight: 1.1 }}>{workoutName}</span>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>Rest</span>
+                      )}
                     </div>
                   );
                 })}

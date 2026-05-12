@@ -1,6 +1,6 @@
 import React from 'react';
 import { Map, CheckCircle } from 'lucide-react';
-import { VLSI_PHASES } from '../../data/vlsi';
+import { VLSI_PHASES, SEED } from '../../data/vlsi';
 
 export default function RoadmapTab({ profile }) {
   const currentPhase = profile.vlsiPhase;
@@ -35,7 +35,19 @@ export default function RoadmapTab({ profile }) {
                 {isCurrent && <span style={{ fontSize: '10px', padding: '2px 8px', background: `${p.color}30`, color: p.color, borderRadius: '12px', fontWeight: 600 }}>NOW</span>}
               </div>
               
-              <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: 0 }}>{p.days} Days • Phase {i}</p>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: '0 0 12px 0' }}>{p.days} Days • Phase {i}</p>
+              
+              {/* Display subheadings from SEED */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {Object.values(SEED)
+                  .filter(seed => seed.phase === i)
+                  .map((seed, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: p.color }} />
+                      <span style={{ fontSize: '12px', color: 'var(--color-text-tertiary)' }}>{seed.title}</span>
+                    </div>
+                  ))}
+              </div>
             </div>
           );
         })}
