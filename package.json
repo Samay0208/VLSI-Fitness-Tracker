@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.2.1",
+    "@google/generative-ai": "^0.24.1",
     "framer-motion": "^11.0.3",
     "lucide-react": "^0.323.0",
     "react": "^18.2.0",

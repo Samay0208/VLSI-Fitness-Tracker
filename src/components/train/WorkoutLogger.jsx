@@ -98,7 +98,7 @@ function SetRow({ setIdx, color, isDone, defaultReps, onLog }) {
         value={w} 
         onChange={e => setW(e.target.value)} 
         disabled={isDone}
-        style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-primary)', background: isDone ? 'transparent' : 'var(--color-bg-primary)', color: 'white', textAlign: 'center' }} 
+        style={{ flex: 1, minWidth: 0, padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-primary)', background: isDone ? 'transparent' : 'var(--color-bg-primary)', color: 'white', textAlign: 'center' }} 
       />
       <span style={{ color: 'var(--color-text-secondary)', fontSize: '12px' }}>×</span>
       <input 
@@ -107,7 +107,7 @@ function SetRow({ setIdx, color, isDone, defaultReps, onLog }) {
         value={r} 
         onChange={e => setR(e.target.value)} 
         disabled={isDone}
-        style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-primary)', background: isDone ? 'transparent' : 'var(--color-bg-primary)', color: 'white', textAlign: 'center' }} 
+        style={{ flex: 1, minWidth: 0, padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-primary)', background: isDone ? 'transparent' : 'var(--color-bg-primary)', color: 'white', textAlign: 'center' }} 
       />
       <button 
         onClick={() => !isDone && onLog(w, r)}

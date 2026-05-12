@@ -17,14 +17,10 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/4712/4712010.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'https://cdn-icons-png.flaticon.com/512/4712/4712010.png',
-            sizes: '512x512',
-            type: 'image/png'
+            src: '/icon.svg',
+            sizes: '192x192 512x512',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           }
         ]
       }
