@@ -18,8 +18,9 @@ export default function TrainScreen({ profile, measurements, workoutLogs, setWor
   
   const fp = FIT_PHASES[profile.fitPhase || 0];
   const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
-  const isGym = fp.gymDays.includes(dow);
-  const wKey = !isGym ? 'Rest' : 'Push'; 
+  const gymIdx = fp.gymDays.indexOf(dow);
+  const isGym = gymIdx !== -1;
+  const wKey = !isGym ? 'Rest' : (fp.split ? fp.split[gymIdx] : 'Push');
 
   useEffect(() => {
     (async () => {

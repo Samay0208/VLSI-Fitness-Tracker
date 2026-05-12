@@ -21,7 +21,9 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
   const vp = VLSI_PHASES[profile.vlsiPhase];
   const fp = FIT_PHASES[profile.fitPhase || 0];
   const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
-  const isGym = fp.gymDays.includes(dow);
+  const gymIdx = fp.gymDays.indexOf(dow);
+  const isGym = gymIdx !== -1;
+  const workoutName = isGym && fp.split ? fp.split[gymIdx] : 'Rest';
   const done = vlsiProgress?.completedDays?.length || 0;
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
         <ActionCard 
           icon={Dumbbell} 
           title={isGym ? 'Gym Day' : 'Rest Day'} 
-          subtitle={isGym ? 'Push Day + Cardio' : 'Active Recovery'}
+          subtitle={isGym ? `${workoutName} Day` : 'Active Recovery'}
           color="var(--color-accent-fit)" 
           onClick={() => setScreen('train')}
         />
