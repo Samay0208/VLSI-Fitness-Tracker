@@ -33,6 +33,27 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
   const workoutName = isGym && fp.split ? fp.split[gymIdx] : 'Rest';
   const done = vlsiProgress?.completedDays?.length || 0;
 
+  // Calculate real streak from activity log
+  const calcStreak = () => {
+    try {
+      const log = JSON.parse(localStorage.getItem('activityLog') || '[]');
+      if (!log.length) return 0;
+      let streak = 0;
+      const today = new Date();
+      for (let i = 0; i < 365; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        if (log.includes(d.toDateString())) {
+          streak++;
+        } else if (i > 0) {
+          break; // streak broken
+        }
+      }
+      return streak;
+    } catch { return 0; }
+  };
+  const streak = calcStreak();
+
   // Load cached daily insight
   useEffect(() => {
     (async () => {
@@ -127,7 +148,7 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
         <StatCard icon={BookOpen} title="Lessons" value={done} color="var(--color-accent-vlsi)" />
         <StatCard icon={Dumbbell} title="Weight" value={`${wt}kg`} color="var(--color-accent-fit)" />
         <StatCard icon={Trophy} title="VLSI Score" value={`${vLv.avgPct}%`} color="var(--color-accent-track)" />
-        <StatCard icon={Flame} title="Streak" value="5 Days" color="var(--color-accent-danger)" />
+        <StatCard icon={Flame} title="Streak" value={`${streak} Day${streak !== 1 ? 's' : ''}`} color="var(--color-accent-danger)" />
       </div>
 
       <div className="glass-card" style={{ padding: '16px', marginBottom: '20px', borderLeft: '4px solid var(--color-accent-ai)' }}>

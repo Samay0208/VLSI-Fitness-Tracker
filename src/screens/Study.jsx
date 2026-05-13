@@ -206,6 +206,20 @@ export default function StudyScreen({ profile, setProfile, vlsiProgress, setVlsi
 
           <button 
             onClick={async () => {
+              // Track completed day
+              const newCompleted = [...(vlsiProgress.completedDays || []), lkey];
+              const updatedVP = { ...vlsiProgress, completedDays: newCompleted };
+              setVlsiProgress(updatedVP);
+              
+              // Track activity for streak
+              const today = new Date().toDateString();
+              const activityLog = JSON.parse(localStorage.getItem('activityLog') || '[]');
+              if (!activityLog.includes(today)) {
+                activityLog.push(today);
+                localStorage.setItem('activityLog', JSON.stringify(activityLog));
+              }
+              
+              // Advance to next day
               setProfile(p => ({ ...p, vlsiDay: p.vlsiDay + 1 }));
               await db.set('profile', { ...profile, vlsiDay: profile.vlsiDay + 1 });
             }}

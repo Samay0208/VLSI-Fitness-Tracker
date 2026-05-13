@@ -46,6 +46,15 @@ export default function WorkoutLogger({ workout, isGym, color, workoutLogs, setW
     setWorkoutLogs(newLogs);
     await db.set('workoutLogs', newLogs);
     setActiveLogs({});
+    
+    // Track activity for streak
+    const today = new Date().toDateString();
+    const activityLog = JSON.parse(localStorage.getItem('activityLog') || '[]');
+    if (!activityLog.includes(today)) {
+      activityLog.push(today);
+      localStorage.setItem('activityLog', JSON.stringify(activityLog));
+    }
+    
     setWorkoutDone(true);
   };
 
