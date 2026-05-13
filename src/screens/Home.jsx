@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Dumbbell, Flame, Trophy, CalendarClock, Loader2, PlusCircle, X } from 'lucide-react';
+import { BookOpen, Dumbbell, Flame, Trophy, CalendarClock, Loader2, PlusCircle, X, Clock } from 'lucide-react';
 import { PE } from '../utils/pe';
 import { VLSI_PHASES, SEED } from '../data/vlsi';
 import { FIT_PHASES } from '../data/fitness';
@@ -10,6 +10,13 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
   const [insight, setInsight] = useState('');
   const [schedule, setSchedule] = useState(null);
   const [generatingSchedule, setGeneratingSchedule] = useState(false);
+  
+  // Schedule modal state
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [gymTime, setGymTime] = useState('07:00');
+  const [wakeTime, setWakeTime] = useState('06:00');
+  const [sleepTime, setSleepTime] = useState('23:00');
+  const [extraCommitments, setExtraCommitments] = useState('');
   
   const [showExtraModal, setShowExtraModal] = useState(false);
   const [extraType, setExtraType] = useState('workout');
@@ -26,6 +33,7 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
   const workoutName = isGym && fp.split ? fp.split[gymIdx] : 'Rest';
   const done = vlsiProgress?.completedDays?.length || 0;
 
+  // Load cached daily insight
   useEffect(() => {
     (async () => {
       const todayStr = new Date().toDateString();
@@ -36,19 +44,53 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
         return;
       }
 
-      const prompt = `Give a 2-sentence highly motivating daily insight. Weight: ${wt}kg. VLSI Level: ${vLv.level}. Today is ${isGym ? 'Gym Day' : 'Rest Day'}. Be energetic.`;
+      const prompt = `Give a 2-sentence highly motivating daily insight for ${profile.name}. Weight: ${wt}kg. VLSI Level: ${vLv.level}. Today is ${dow}, ${isGym ? workoutName + ' Day' : 'Rest Day'}. Be energetic and personal.`;
       const res = await ai(prompt, "You are a world-class AI fitness and study coach.");
       
-      if (res && !res.includes('Sorry')) {
+      if (res && !res.includes('Sorry') && res !== '__QUOTA_EXCEEDED__') {
         await db.set('dailyInsight', { date: todayStr, text: res });
       }
-      setInsight(res);
+      setInsight(res === '__QUOTA_EXCEEDED__' ? '🔥 Keep pushing! Every rep and every lesson builds the future you.' : res);
     })();
-  }, [wt, vLv.level, isGym]);
+  }, []);
+
+  // Load cached schedule for today
+  useEffect(() => {
+    (async () => {
+      const todayStr = new Date().toDateString();
+      const cached = await db.get('dailySchedule');
+      if (cached && cached.date === todayStr) {
+        setSchedule(cached.items);
+      }
+    })();
+  }, []);
+
+  const openScheduleModal = () => {
+    setShowScheduleModal(true);
+  };
 
   const generateSchedule = async () => {
+    setShowScheduleModal(false);
     setGeneratingSchedule(true);
-    const prompt = `Create a daily time-blocked schedule. The user has to study VLSI Phase: ${vp.name} and today is a ${isGym ? 'Gym Day' : 'Rest Day'}.
+    
+    const prompt = `Create a detailed daily time-blocked schedule for ${profile.name}.
+    
+    USER INPUT:
+    - Wake up time: ${wakeTime}
+    - Sleep time: ${sleepTime}
+    - Gym time preference: ${gymTime}
+    - Today is ${isGym ? workoutName + ' Day (gym day)' : 'Rest Day (no gym)'}
+    - VLSI study phase: ${vp.name}
+    - Other commitments: ${extraCommitments || 'None specified'}
+    
+    RULES:
+    - Start from wake time to sleep time
+    - Include meals (breakfast, lunch, dinner, snacks)
+    - ${isGym ? `Schedule gym at ${gymTime} for 60-90 minutes (${workoutName} workout)` : 'No gym today, include active recovery/walk'}
+    - Include 2-3 VLSI study blocks (total ~2-3 hours)
+    - Include breaks and personal time
+    - Work around the user's other commitments
+    
     Return a JSON object with a single key 'schedule' that maps to an array of objects, where each object has:
     - time (string, e.g., "06:00 AM")
     - activity (string)
@@ -59,6 +101,8 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
     
     if (result && result.schedule) {
       setSchedule(result.schedule);
+      // Persist for the entire day
+      await db.set('dailySchedule', { date: new Date().toDateString(), items: result.schedule });
     }
     setGeneratingSchedule(false);
   };
@@ -136,7 +180,7 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
               placeholder={`Describe what you did... (e.g. "Ran 5km in 25 mins" or "Read extra UVM verification notes")`}
               value={extraDesc}
               onChange={e => setExtraDesc(e.target.value)}
-              style={{ width: '100%', height: '100px', padding: '12px', borderRadius: '8px', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border-primary)', color: 'white', fontSize: '13px', marginBottom: '16px', resize: 'none' }}
+              style={{ width: '100%', height: '100px', padding: '12px', borderRadius: '8px', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border-primary)', color: 'white', fontSize: '13px', marginBottom: '16px', resize: 'none', boxSizing: 'border-box' }}
             />
             
             <button onClick={saveExtraSession} style={{ width: '100%', padding: '12px', background: 'var(--color-accent-danger)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600 }}>Save to Logs</button>
@@ -146,31 +190,75 @@ export default function HomeScreen({ profile, measurements, vlsiProgress, workou
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <h2 style={{ fontSize: '16px' }}>AI Daily Schedule</h2>
-        {!schedule && (
-          <button 
-            onClick={generateSchedule}
-            disabled={generatingSchedule}
-            style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-primary)', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            {generatingSchedule ? <Loader2 size={12} className="animate-spin" /> : <CalendarClock size={12} />}
-            Generate
-          </button>
-        )}
+        <button 
+          onClick={schedule ? () => { setSchedule(null); db.set('dailySchedule', null); } : openScheduleModal}
+          disabled={generatingSchedule}
+          style={{ fontSize: '12px', padding: '6px 12px', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-primary)', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          {generatingSchedule ? <Loader2 size={12} className="animate-spin" /> : <CalendarClock size={12} />}
+          {schedule ? 'Regenerate' : 'Generate'}
+        </button>
       </div>
+
+      {/* Schedule Modal */}
+      {showScheduleModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '360px', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '18px' }}>Plan Your Day</h3>
+              <button onClick={() => setShowScheduleModal(false)} style={{ background: 'none', border: 'none', color: 'white' }}><X size={20} /></button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>Wake Up Time</label>
+                <input type="time" value={wakeTime} onChange={e => setWakeTime(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border-primary)', background: 'var(--color-bg-primary)', color: 'white', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>
+                  {isGym ? `Gym Time (${workoutName} Day)` : 'Walk/Recovery Time'}
+                </label>
+                <input type="time" value={gymTime} onChange={e => setGymTime(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border-primary)', background: 'var(--color-bg-primary)', color: 'white', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>Sleep Time</label>
+                <input type="time" value={sleepTime} onChange={e => setSleepTime(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border-primary)', background: 'var(--color-bg-primary)', color: 'white', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>Any other commitments today? (optional)</label>
+                <textarea 
+                  placeholder='e.g. "College class 10 AM - 1 PM" or "Dentist at 4 PM"'
+                  value={extraCommitments}
+                  onChange={e => setExtraCommitments(e.target.value)}
+                  style={{ width: '100%', height: '70px', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border-primary)', background: 'var(--color-bg-primary)', color: 'white', fontSize: '13px', resize: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+
+            <button onClick={generateSchedule} style={{ width: '100%', padding: '12px', background: 'var(--color-accent-ai)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600 }}>
+              Generate My Schedule
+            </button>
+          </div>
+        </div>
+      )}
 
       {generatingSchedule && (
         <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
           <Loader2 size={24} color="var(--color-accent-ai)" className="animate-spin" style={{ margin: '0 auto 12px' }} />
-          <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>Optimizing your day...</p>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>AI is building your personalized schedule...</p>
         </div>
       )}
 
       {schedule && (
         <div className="glass-card" style={{ padding: '16px' }}>
+          <p style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginBottom: '12px' }}>
+            📌 This schedule is saved for today. Tap "Regenerate" to create a new one.
+          </p>
           {schedule.map((item, i) => {
             let color = 'var(--color-text-secondary)';
             if (item.type === 'gym') color = 'var(--color-accent-fit)';
             if (item.type === 'study') color = 'var(--color-accent-vlsi)';
+            if (item.type === 'meal') color = '#f59e0b';
             
             return (
               <div key={i} style={{ display: 'flex', gap: '16px', marginBottom: i < schedule.length - 1 ? '16px' : '0' }}>

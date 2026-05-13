@@ -32,12 +32,17 @@ export const PE = {
     return a;
   },
   
-  diet(wt, ph, trend) {
-    const BMR = Math.round(10 * wt + 6.25 * 183 - 5 * 23 + 5);
+  diet(wt, ph, trend, profile = {}) {
+    const age = profile.age || 23;
+    const ht = profile.height || 175;
+    const BMR = Math.round(10 * wt + 6.25 * ht - 5 * age + 5);
     const TDEE = Math.round(BMR * [1.375, 1.55, 1.65][ph || 0] || BMR * 1.55);
-    const def = { gaining: 550, plateau: 450, losing: 300, losing_fast: -150, insufficient: 350 }[trend] ?? 350;
+    const goal = profile.goal || 'fat_loss';
+    let def = { gaining: 550, plateau: 450, losing: 300, losing_fast: -150, insufficient: 350 }[trend] ?? 350;
+    if (goal === 'muscle_gain') def = Math.max(def - 300, -200); // surplus for bulking
+    if (goal === 'recomposition') def = Math.max(def - 100, 100);
     const kcal = Math.max(1500, TDEE - def);
-    const protein = Math.round(wt * 1.9);
+    const protein = Math.round(wt * (goal === 'muscle_gain' ? 2.2 : 1.9));
     const fat = Math.round(kcal * 0.25 / 9);
     const carbs = Math.round((kcal - protein * 4 - fat * 9) / 4);
     return { kcal, protein, fat, carbs, TDEE, def, BMR };
@@ -72,8 +77,13 @@ export const PE = {
     const s = [...m].sort((a, b) => new Date(a.date) - new Date(b.date));
     const f = s[0] || p.firstMeasurement || {};
     const l = s[s.length - 1] || f;
-    const d = this.diet(l.weight || 90, p.fitPhase || 0, this.weightTrend(m));
-    return `FITNESS PROFILE:\nWeight: ${f.weight || 90}→${l.weight || 90}kg | Trend: ${this.weightTrend(m)} | Rate: ${this.weeklyRate(m)}kg/wk\nWaist: ${f.waist || '?'}→${l.waist || '?'}cm | Thighs: ${f.thighs || '?'}→${l.thighs || '?'}cm | Hips: ${f.hips || '?'}→${l.hips || '?'}cm\nStubborn: ${this.stubbornAreas(m).join(', ') || 'none'} | TDEE: ${d.TDEE} | Target: ${d.kcal}kcal | Protein: ${d.protein}g\nPhase: PPLUL Foundation | Vegetarian`;
+    const d = this.diet(l.weight || 90, p.fitPhase || 0, this.weightTrend(m), p);
+    return `FITNESS PROFILE:
+Name: ${p.name} | Age: ${p.age || '?'} | Height: ${p.height || '?'}cm | Goal: ${p.goal || 'fat_loss'} | Experience: ${p.experience || 'beginner'}
+Weight: ${f.weight || 90}→${l.weight || 90}kg | Trend: ${this.weightTrend(m)} | Rate: ${this.weeklyRate(m)}kg/wk
+Waist: ${f.waist || '?'}→${l.waist || '?'}cm | Thighs: ${f.thighs || '?'}→${l.thighs || '?'}cm | Hips: ${f.hips || '?'}→${l.hips || '?'}cm
+Stubborn: ${this.stubbornAreas(m).join(', ') || 'none'} | TDEE: ${d.TDEE} | Target: ${d.kcal}kcal | Protein: ${d.protein}g
+Phase: ${FIT_PHASES[p.fitPhase || 0]?.name} | Vegetarian`;
   },
   
   vlsiCtx(vp, p) {

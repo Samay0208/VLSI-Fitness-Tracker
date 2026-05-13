@@ -92,27 +92,84 @@ export default function App() {
 
 function Setup({ onDone }) {
   const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [goal, setGoal] = useState('fat_loss');
+  const [experience, setExperience] = useState('beginner');
+  const [vlsiBackground, setVlsiBackground] = useState('none');
+
+  const inputStyle = { width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border-primary)', background: 'var(--color-bg-primary)', color: 'white', marginBottom: '12px', boxSizing: 'border-box' };
+  const labelStyle = { fontSize: '12px', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px', textAlign: 'left' };
+
   return (
-    <div style={{ padding: '2rem', maxWidth: '420px', margin: '0 auto', textAlign: 'center' }}>
-      <h1 style={{ fontSize: '24px', marginBottom: '8px' }}>Setup Profile</h1>
-      <input 
-        value={name} 
-        onChange={e => setName(e.target.value)} 
-        placeholder="Your Name" 
-        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border-primary)', background: 'var(--color-bg-primary)', color: 'white', marginBottom: '16px' }} 
-      />
+    <div style={{ padding: '2rem', maxWidth: '420px', margin: '0 auto' }}>
+      <h1 style={{ fontSize: '24px', marginBottom: '4px', textAlign: 'center' }}>Welcome! 🚀</h1>
+      <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px', textAlign: 'center' }}>
+        Set up your profile so the AI can personalize everything for you.
+      </p>
+
+      <label style={labelStyle}>Your Name</label>
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Samay" style={inputStyle} />
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+        <div>
+          <label style={labelStyle}>Age</label>
+          <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="23" style={{ ...inputStyle, marginBottom: 0 }} />
+        </div>
+        <div>
+          <label style={labelStyle}>Height (cm)</label>
+          <input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="175" style={{ ...inputStyle, marginBottom: 0 }} />
+        </div>
+        <div>
+          <label style={labelStyle}>Weight (kg)</label>
+          <input type="number" value={weight} onChange={e => setWeight(e.target.value)} placeholder="90" style={{ ...inputStyle, marginBottom: 0 }} />
+        </div>
+      </div>
+
+      <label style={labelStyle}>Fitness Goal</label>
+      <select value={goal} onChange={e => setGoal(e.target.value)} style={inputStyle}>
+        <option value="fat_loss">Fat Loss / Cut</option>
+        <option value="muscle_gain">Muscle Gain / Bulk</option>
+        <option value="recomposition">Body Recomposition</option>
+        <option value="strength">Strength Focus</option>
+        <option value="endurance">Endurance / Cardio</option>
+      </select>
+
+      <label style={labelStyle}>Gym Experience</label>
+      <select value={experience} onChange={e => setExperience(e.target.value)} style={inputStyle}>
+        <option value="beginner">Beginner (0-6 months)</option>
+        <option value="intermediate">Intermediate (6 months - 2 years)</option>
+        <option value="advanced">Advanced (2+ years)</option>
+      </select>
+
+      <label style={labelStyle}>VLSI Background</label>
+      <select value={vlsiBackground} onChange={e => setVlsiBackground(e.target.value)} style={inputStyle}>
+        <option value="none">Complete Beginner</option>
+        <option value="some">Some Digital Logic knowledge</option>
+        <option value="experienced">Experienced (Verilog/RTL)</option>
+      </select>
+
       <button 
         onClick={() => {
-          if(!name.trim()) return;
+          if (!name.trim()) return;
           onDone({
-            name: name.trim(), startDate: new Date().toISOString(),
-            vlsiPhase: 0, vlsiDay: 1, fitPhase: 0,
-            firstMeasurement: { date: new Date().toISOString(), weight: 90 }
+            name: name.trim(),
+            age: parseInt(age) || 23,
+            height: parseInt(height) || 175,
+            goal,
+            experience,
+            vlsiBackground,
+            startDate: new Date().toISOString(),
+            vlsiPhase: vlsiBackground === 'experienced' ? 2 : vlsiBackground === 'some' ? 1 : 0,
+            vlsiDay: 1,
+            fitPhase: experience === 'advanced' ? 1 : 0,
+            firstMeasurement: { date: new Date().toISOString(), weight: parseFloat(weight) || 90 }
           });
         }}
-        style={{ padding: '12px 24px', background: 'var(--color-accent-vlsi)', color: 'white', border: 'none', borderRadius: '8px', width: '100%', fontWeight: 600 }}
+        style={{ padding: '14px 24px', background: 'var(--color-accent-vlsi)', color: 'white', border: 'none', borderRadius: '8px', width: '100%', fontWeight: 600, fontSize: '16px', marginTop: '8px' }}
       >
-        Start Journey
+        Start My Journey
       </button>
     </div>
   );

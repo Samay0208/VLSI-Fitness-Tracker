@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dumbbell, Droplets, Moon, Activity, Calendar, Loader2, TrendingUp, Utensils, Music, Sparkles } from 'lucide-react';
+import { Dumbbell, Droplets, Moon, Activity, Calendar, Loader2, TrendingUp, Utensils, Music, Sparkles, ClipboardList, ChevronRight } from 'lucide-react';
 import { WORKOUTS, FIT_PHASES } from '../data/fitness';
 import { db } from '../utils/storage';
 import { ai, aiJson } from '../services/ai';
@@ -87,8 +87,17 @@ export default function TrainScreen({ profile, measurements, workoutLogs, setWor
 
   const workout = monthlyBlock && monthlyBlock[dow] ? monthlyBlock[dow] : (isGym ? WORKOUTS[wKey] : WORKOUTS['Rest']);
 
+  // Calculate tomorrow's workout
+  const tomorrowIdx = (new Date().getDay() + 1) % 7;
+  const tomorrowDow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][tomorrowIdx];
+  const tomorrowGymIdx = fp.gymDays.indexOf(tomorrowDow);
+  const isTomorrowGym = tomorrowGymIdx !== -1;
+  const tomorrowKey = !isTomorrowGym ? 'Rest' : (fp.split ? fp.split[tomorrowGymIdx] : 'Push');
+  const tomorrowWorkout = monthlyBlock && monthlyBlock[tomorrowDow] ? monthlyBlock[tomorrowDow] : (isTomorrowGym ? WORKOUTS[tomorrowKey] : WORKOUTS['Rest']);
+
   const TABS = [
     { id: 'workout', label: 'Workout', icon: Dumbbell },
+    { id: 'plan', label: 'Plan', icon: ClipboardList },
     { id: 'diet', label: 'Diet', icon: Utensils },
     { id: 'music', label: 'Music', icon: Music },
     { id: 'schedule', label: 'Schedule', icon: Calendar },
@@ -156,7 +165,7 @@ export default function TrainScreen({ profile, measurements, workoutLogs, setWor
       {tab === 'workout' && generating && (
         <div className="glass-card" style={{ padding: '40px 20px', textAlign: 'center', marginBottom: '20px' }}>
           <Loader2 size={40} color={fp.color} className="animate-spin" style={{ margin: '0 auto 16px' }} />
-          <h3 style={{ fontSize: '16px', color: 'var(--color-text-secondary)' }}>Gemini is programming your month...</h3>
+          <h3 style={{ fontSize: '16px', color: 'var(--color-text-secondary)' }}>AI is programming your month...</h3>
         </div>
       )}
 
@@ -191,8 +200,56 @@ export default function TrainScreen({ profile, measurements, workoutLogs, setWor
             </div>
           </div>
 
-          <WorkoutLogger workout={workout} isGym={isGym} color={workout.color || fp.color} workoutLogs={workoutLogs} setWorkoutLogs={setWorkoutLogs} />
+          <WorkoutLogger workout={workout} isGym={isGym} color={workout.color || fp.color} workoutLogs={workoutLogs} setWorkoutLogs={setWorkoutLogs} tomorrowWorkout={tomorrowWorkout} tomorrowDow={tomorrowDow} isTomorrowGym={isTomorrowGym} />
         </>
+      )}
+
+      {tab === 'plan' && (
+        <div className="glass-card" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <ClipboardList size={24} color={fp.color} />
+            <h3 style={{ fontSize: '16px' }}>Monthly Workout Plan</h3>
+          </div>
+          {!monthlyBlock ? (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '16px' }}>No AI plan generated yet. Tap "New Month AI Block" above to create your personalized 4-week program.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {fp.gymDays.map((day, i) => {
+                const dayWorkout = monthlyBlock[day] || {};
+                return (
+                  <div key={day} style={{ padding: '14px', borderRadius: '8px', background: 'var(--color-bg-tertiary)', border: `1px solid ${dayWorkout.color || fp.color}40` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: dayWorkout.color || fp.color, background: `${dayWorkout.color || fp.color}20`, padding: '2px 8px', borderRadius: '6px' }}>{day}</span>
+                        <span style={{ fontSize: '14px', fontWeight: 600 }}>{dayWorkout.name || fp.split?.[i] || 'Workout'}</span>
+                      </div>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>{dayWorkout.duration || ''}</span>
+                    </div>
+                    <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>{dayWorkout.tag || ''}</p>
+                    {dayWorkout.exercises && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {dayWorkout.exercises.map((ex, j) => (
+                          <div key={j} style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <ChevronRight size={10} /> {ex.name} — {ex.defaultSets}×{ex.defaultReps}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <div style={{ padding: '14px', borderRadius: '8px', background: 'var(--color-bg-tertiary)', border: '1px solid #64748b40' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', background: '#64748b20', padding: '2px 8px', borderRadius: '6px' }}>Sat/Sun</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600 }}>Active Recovery</span>
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>Walk, stretching, foam rolling</p>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {tab === 'diet' && <DietTargets profile={profile} measurements={measurements} />}

@@ -159,16 +159,32 @@ export default function StudyScreen({ profile, setProfile, vlsiProgress, setVlsi
 
       {tab === 'lesson' && lesson && (
         <div className="glass-card" style={{ padding: '20px' }}>
-          {lesson.videoId && (
-            <>
-              <h3 style={{ fontSize: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BookOpen size={18} color={vp.color} /> Video Lecture
-              </h3>
-              <div style={{ borderRadius: '8px', overflow: 'hidden', aspectRatio: '16/9', marginBottom: '24px' }}>
-                <iframe src={`https://www.youtube.com/embed/${lesson.videoId}`} style={{ width: '100%', height: '100%', border: 'none' }} allowFullScreen />
+          <h3 style={{ fontSize: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BookOpen size={18} color={vp.color} /> Video Lecture
+          </h3>
+          <div style={{ borderRadius: '8px', overflow: 'hidden', marginBottom: '24px', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border-secondary)' }}>
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '12px' }}>
+                📺 Search for the best lecture on: <strong style={{ color: 'white' }}>{lesson.title}</strong>
+              </p>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <a 
+                  href={`https://www.youtube.com/results?search_query=VLSI+${encodeURIComponent(lesson.title)}+lecture+tutorial`} 
+                  target="_blank" rel="noreferrer"
+                  style={{ padding: '10px 16px', background: '#ff0000', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '13px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  ▶ YouTube
+                </a>
+                <a 
+                  href={`https://nptel.ac.in/course.html?query=${encodeURIComponent(lesson.title)}`} 
+                  target="_blank" rel="noreferrer"
+                  style={{ padding: '10px 16px', background: '#1D9E7520', color: '#1D9E75', border: '1px solid #1D9E7540', borderRadius: '8px', fontWeight: 600, fontSize: '13px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  📖 NPTEL
+                </a>
               </div>
-            </>
-          )}
+            </div>
+          </div>
           
           <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>Interactive Notes</h3>
           <pre style={{ fontSize: '13px', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-sans)', lineHeight: 1.6, color: 'var(--color-text-secondary)', background: 'var(--color-bg-base)', padding: '16px', borderRadius: '8px', marginBottom: '24px', border: '1px solid var(--color-border-secondary)' }}>

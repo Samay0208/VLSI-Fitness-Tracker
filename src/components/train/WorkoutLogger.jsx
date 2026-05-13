@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus, ChevronRight } from 'lucide-react';
 import { db } from '../../utils/storage';
 
-export default function WorkoutLogger({ workout, isGym, color, workoutLogs, setWorkoutLogs }) {
+export default function WorkoutLogger({ workout, isGym, color, workoutLogs, setWorkoutLogs, tomorrowWorkout, tomorrowDow, isTomorrowGym }) {
   const [activeLogs, setActiveLogs] = useState({});
+  const [workoutDone, setWorkoutDone] = useState(false);
 
   if (!isGym) {
     return (
@@ -45,7 +46,7 @@ export default function WorkoutLogger({ workout, isGym, color, workoutLogs, setW
     setWorkoutLogs(newLogs);
     await db.set('workoutLogs', newLogs);
     setActiveLogs({});
-    alert("Workout Saved!");
+    setWorkoutDone(true);
   };
 
   return (
@@ -56,12 +57,36 @@ export default function WorkoutLogger({ workout, isGym, color, workoutLogs, setW
         <ExerciseRow key={i} ex={ex} exIdx={i} color={color} activeLogs={activeLogs[i] || {}} logSet={logSet} />
       ))}
       
-      <button 
-        onClick={finishWorkout}
-        style={{ width: '100%', padding: '14px', background: color, color: 'white', border: 'none', borderRadius: '8px', marginTop: '20px', fontWeight: 600, fontSize: '14px' }}
-      >
-        Mark Workout Complete
-      </button>
+      {!workoutDone ? (
+        <button 
+          onClick={finishWorkout}
+          style={{ width: '100%', padding: '14px', background: color, color: 'white', border: 'none', borderRadius: '8px', marginTop: '20px', fontWeight: 600, fontSize: '14px' }}
+        >
+          Mark Workout Complete
+        </button>
+      ) : (
+        <div style={{ marginTop: '20px' }}>
+          <div style={{ padding: '12px', background: '#1D9E7520', border: '1px solid #1D9E75', borderRadius: '8px', textAlign: 'center', marginBottom: '16px' }}>
+            <p style={{ fontSize: '14px', color: '#1D9E75', fontWeight: 600 }}>✅ Workout Saved!</p>
+          </div>
+          
+          {tomorrowWorkout && (
+            <div style={{ padding: '14px', borderRadius: '8px', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border-secondary)' }}>
+              <p style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginBottom: '6px' }}>📅 TOMORROW ({tomorrowDow})</p>
+              <p style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>{tomorrowWorkout.name}</p>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>{tomorrowWorkout.tag || (isTomorrowGym ? 'Gym Day' : 'Rest Day')}</p>
+              {tomorrowWorkout.exercises && tomorrowWorkout.exercises.slice(0, 4).map((ex, i) => (
+                <div key={i} style={{ fontSize: '12px', color: 'var(--color-text-tertiary)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                  <ChevronRight size={10} /> {ex.name}
+                </div>
+              ))}
+              {tomorrowWorkout.exercises && tomorrowWorkout.exercises.length > 4 && (
+                <p style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', marginTop: '4px' }}>+{tomorrowWorkout.exercises.length - 4} more exercises</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
